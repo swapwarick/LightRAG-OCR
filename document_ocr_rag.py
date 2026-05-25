@@ -1,5 +1,10 @@
 import os
 import sys
+import logging
+
+# Suppress Hugging Face Hub unauthenticated request warnings to keep terminal logs clean
+logging.getLogger("huggingface_hub.utils._http").setLevel(logging.ERROR)
+
 import easyocr
 import chromadb
 from chromadb.utils import embedding_functions

@@ -11,6 +11,11 @@ except AttributeError:
     sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
 
 import tempfile
+import logging
+
+# Suppress Hugging Face Hub unauthenticated request warnings to keep terminal logs clean
+logging.getLogger("huggingface_hub.utils._http").setLevel(logging.ERROR)
+
 import json
 import time
 from flask import Flask, request, jsonify, Response, send_from_directory
