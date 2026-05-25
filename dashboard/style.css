@@ -762,25 +762,34 @@ body {
   position: fixed; inset: 0; z-index: 200;
   background: var(--overlay-bg); backdrop-filter: blur(8px);
   display: flex; align-items: center; justify-content: center;
+  padding: 40px 20px; /* Enforces at least 40px top and bottom spacing off the viewport */
+  box-sizing: border-box;
   animation: fade-in .25s var(--ease);
 }
 .modal-card {
   background: var(--bg-card); border: 1px solid var(--border-hi);
-  border-radius: var(--radius-lg); width: 680px; max-width: 96vw;
-  max-height: 80vh; display: flex; flex-direction: column;
+  border-radius: var(--radius-lg); width: 680px; max-width: 100%;
+  max-height: 100%; /* Strictly caps card height to screen height minus vertical padding! */
+  display: flex; flex-direction: column;
   box-shadow: var(--shadow);
-  overflow: hidden; /* Clips content to rounded borders and prevents expansion */
+  overflow: hidden; /* Clips content and prevents children from stretching the card off-screen */
 }
 .modal-header {
   display: flex; align-items: center; justify-content: space-between;
   padding: 20px 24px; border-bottom: 1px solid var(--border);
+  background: var(--bg-card); /* Assures solid opaque background */
+  flex-shrink: 0; /* Prevents the header from getting compressed when space is tight */
+  z-index: 10;
 }
-.modal-header h3 { font-size: 1rem; font-weight: 700; }
+.modal-header h3 { font-size: 1.05rem; font-weight: 700; color: var(--text-1); }
 .modal-close {
-  background: none; border: none; color: var(--text-3); cursor: pointer;
-  padding: 4px; border-radius: 4px; transition: color .15s;
+  background: none; border: none; color: var(--text-2); cursor: pointer;
+  padding: 8px; border-radius: 50%; transition: background .2s, color .2s;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
 }
-.modal-close:hover { color: var(--text-1); }
+.modal-close:hover { background: rgba(255,255,255,0.08); color: var(--text-1); }
+[data-theme="light"] .modal-close:hover { background: rgba(0,0,0,0.05); }
 .modal-close svg { width: 18px; height: 18px; }
 .modal-body {
   padding: 20px 24px;
@@ -788,8 +797,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  flex: 1 1 0%;     /* Grows and shrinks perfectly within the card container */
-  min-height: 0;    /* Tells browser this container can shrink to trigger scrollbar */
+  flex: 1 1 auto; /* Allows body to grow and shrink dynamically within constrained bounds */
 }
 
 .chunk-item {
