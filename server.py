@@ -148,49 +148,49 @@ def upload_document():
         start_time = time.time()
         if is_pdf:
             import fitz
-            doc = fitz.open(temp_path)
-            digital_text_parts = []
-            
-            for i, page in enumerate(doc):
-                text = page.get_text()
-                if text.strip():
-                    digital_text_parts.append(text)
-            
-            extracted_text = "\n".join(digital_text_parts).strip()
-            
-            # If digital text exists and has substantial content, use it directly!
-            if len(extracted_text) > 100:
-                ocr_time = time.time() - start_time
-                log_queue.broadcast({
-                    "status": "ocr_complete", 
-                    "message": f"[+] PDF digital text extraction complete — {len(extracted_text)} characters extracted in {ocr_time:.2f}s (No OCR required)."
-                })
-            else:
-                log_queue.broadcast({"status": "ocr_log", "message": "[*] Digital text is empty or too short. Falling back to EasyOCR page rendering..."})
-                ocr_text_parts = []
+            with fitz.open(temp_path) as doc:
+                digital_text_parts = []
                 
                 for i, page in enumerate(doc):
-                    log_queue.broadcast({"status": "ocr_running", "message": f"[*] Rendering page {i+1} of {len(doc)}..."})
-                    zoom = 2.0
-                    mat = fitz.Matrix(zoom, zoom)
-                    pix = page.get_pixmap(matrix=mat)
-                    
-                    log_queue.broadcast({"status": "ocr_running", "message": f"[*] Running EasyOCR on page {i+1} of {len(doc)}..."})
-                    png_data = pix.tobytes("png")
-                    
-                    page_results = reader.readtext(png_data)
-                    page_results.sort(key=lambda x: (x[0][0][1], x[0][0][0]))
-                    
-                    page_text = "\n".join([text for (_, text, _) in page_results])
-                    if page_text.strip():
-                        ocr_text_parts.append(page_text)
+                    text = page.get_text()
+                    if text.strip():
+                        digital_text_parts.append(text)
                 
-                extracted_text = "\n".join(ocr_text_parts).strip()
-                ocr_time = time.time() - start_time
-                log_queue.broadcast({
-                    "status": "ocr_complete", 
-                    "message": f"[+] PDF OCR complete — {len(extracted_text)} characters extracted in {ocr_time:.2f}s."
-                })
+                extracted_text = "\n".join(digital_text_parts).strip()
+                
+                # If digital text exists and has substantial content, use it directly!
+                if len(extracted_text) > 100:
+                    ocr_time = time.time() - start_time
+                    log_queue.broadcast({
+                        "status": "ocr_complete", 
+                        "message": f"[+] PDF digital text extraction complete — {len(extracted_text)} characters extracted in {ocr_time:.2f}s (No OCR required)."
+                    })
+                else:
+                    log_queue.broadcast({"status": "ocr_log", "message": "[*] Digital text is empty or too short. Falling back to EasyOCR page rendering..."})
+                    ocr_text_parts = []
+                    
+                    for i, page in enumerate(doc):
+                        log_queue.broadcast({"status": "ocr_running", "message": f"[*] Rendering page {i+1} of {len(doc)}..."})
+                        zoom = 2.0
+                        mat = fitz.Matrix(zoom, zoom)
+                        pix = page.get_pixmap(matrix=mat)
+                        
+                        log_queue.broadcast({"status": "ocr_running", "message": f"[*] Running EasyOCR on page {i+1} of {len(doc)}..."})
+                        png_data = pix.tobytes("png")
+                        
+                        page_results = reader.readtext(png_data)
+                        page_results.sort(key=lambda x: (x[0][0][1], x[0][0][0]))
+                        
+                        page_text = "\n".join([text for (_, text, _) in page_results])
+                        if page_text.strip():
+                            ocr_text_parts.append(page_text)
+                    
+                    extracted_text = "\n".join(ocr_text_parts).strip()
+                    ocr_time = time.time() - start_time
+                    log_queue.broadcast({
+                        "status": "ocr_complete", 
+                        "message": f"[+] PDF OCR complete — {len(extracted_text)} characters extracted in {ocr_time:.2f}s."
+                    })
         else:
             # Regular Image/Scan EasyOCR
             results = reader.readtext(temp_path)
