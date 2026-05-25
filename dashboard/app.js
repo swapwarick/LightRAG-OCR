@@ -507,6 +507,12 @@ function renderChunkChart() {
   const labels = state.documents.map(d => d.name.length > 14 ? d.name.slice(0, 12) + '…' : d.name);
   const data   = state.documents.map(d => d.chunks.length);
 
+  // Read CSS variable colors to support light/dark themes
+  const style     = getComputedStyle(document.documentElement);
+  const textColor = style.getPropertyValue('--text-3').trim() || '#4a5578';
+  const gridColor = style.getPropertyValue('--border').trim() || 'rgba(99,120,180,0.14)';
+  const accent    = style.getPropertyValue('--accent').trim() || '#4f8ef7';
+
   if (chunkChartInst) chunkChartInst.destroy();
   chunkChartInst = new Chart(canvas, {
     type: 'bar',
@@ -515,8 +521,8 @@ function renderChunkChart() {
       datasets: [{
         label: 'Chunks',
         data,
-        backgroundColor: 'rgba(79,142,247,0.4)',
-        borderColor: 'rgba(79,142,247,1)',
+        backgroundColor: accent + '66',
+        borderColor: accent,
         borderWidth: 2,
         borderRadius: 6,
       }],
@@ -525,8 +531,8 @@ function renderChunkChart() {
       responsive: true,
       plugins: { legend: { display: false } },
       scales: {
-        x: { ticks: { color: '#4a5578' }, grid: { color: 'rgba(255,255,255,.04)' } },
-        y: { ticks: { color: '#4a5578' }, grid: { color: 'rgba(255,255,255,.04)' }, beginAtZero: true },
+        x: { ticks: { color: textColor }, grid: { color: gridColor } },
+        y: { ticks: { color: textColor }, grid: { color: gridColor }, beginAtZero: true },
       },
     },
   });
@@ -664,28 +670,76 @@ $('processBtn').addEventListener('click', async () => {
 $('demoBtn').addEventListener('click', async () => {
   // We'll create a blob and run it through the real server so it actually chunks and indexes!
   const dummyBlob = new Blob([
-    `ACME CORPORATION INVOICE
-Invoice Number: INV-2026-9876
-Date: May 24, 2026
-Due Date: June 24, 2026
+    `TECHNOVA SOLUTIONS PRIVATE LIMITED
+Registered Office: Plot No. 47, Sector 62, Noida, Uttar Pradesh - 201309
+GSTIN: 09AADCT1234F1Z5 | CIN: U72900UP2019PTC123456
+Phone: +91-120-4567890 | Email: billing@technovasolutions.in
+Website: www.technovasolutions.in
 
-Billing To:
+TAX INVOICE
+
+Invoice Number : TNS/2026-27/00892
+Invoice Date   : 24 May 2026
+Due Date       : 23 June 2026
+Place of Supply: Maharashtra (27)
+
+Bill To:
 Hitesh Sharma
-123 Main Street, Suite 400
+Senior Engineer, DataOps Division
+Infinex Technologies India Pvt. Ltd.
+Level 8, Platina Tower, Bandra Kurla Complex
+Mumbai, Maharashtra - 400051
+GSTIN: 27AABCI9876B1ZK
 
-Items Ordered:
-1. High-Performance GPU Cloud Instance (100 hours) - $150.00
-2. Vector Storage Enterprise SSD (500GB) - $50.00
-3. Automated Agentic Coding Workspace Setup Fee - $25.00
+Items & Services:
 
-Total Amount Due: $225.00
-Tax (8%): $18.00
-Grand Total: $243.00
+S.No  Description                                   HSN/SAC  Qty   Unit Price (INR)   Amount (INR)
+----  --------------------------------------------  -------  ---   ----------------   ------------
+1.    GPU Cloud Compute Instance — A100 80GB         998314   80h   ₹1,875.00/hr       ₹1,50,000.00
+      (NVIDIA A100 · CUDA 12 · Ubuntu 22.04 LTS)
+2.    Enterprise Vector Storage — NVMe SSD            998313   1    ₹42,500.00         ₹42,500.00
+      (500 GB · ChromaDB Compatible · 99.9% SLA)
+3.    Agentic AI Workspace Deployment & Config        998311   1    ₹22,000.00         ₹22,000.00
+      (LightRAG + EasyOCR + Flask API setup)
+4.    24x7 Priority Technical Support — 3 Months      998315   1    ₹18,000.00         ₹18,000.00
+5.    Data Security & Compliance Audit Report         998316   1    ₹9,500.00          ₹9,500.00
 
-Thank you for your business! For inquiries, contact support@acme.com.`
+                                               -------------------------
+                         Sub Total (Taxable Value): ₹2,42,000.00
+                         CGST @ 9%                : ₹21,780.00
+                         SGST @ 9%                : ₹21,780.00
+                         (IGST applicable for inter-state supply)
+                         -------------------------
+                         GRAND TOTAL              : ₹2,85,560.00
+                         -------------------------
+
+Amount in Words: Rupees Two Lakhs Eighty-Five Thousand Five Hundred and Sixty Only.
+
+Payment Details:
+  Bank Name    : HDFC Bank Ltd.
+  Account No.  : 50200012345678
+  IFSC Code    : HDFC0001234
+  Account Type : Current
+  UPI ID       : billing@technovasolutions.hdfc
+
+Terms & Conditions:
+1. Payment due within 30 days from invoice date.
+2. Late payments will attract 1.5% interest per month after due date.
+3. This is a computer-generated invoice and does not require a physical signature.
+4. Goods once sold will not be taken back. Services are non-refundable after delivery.
+5. All disputes are subject to Noida, Uttar Pradesh jurisdiction only.
+6. TDS deduction certificate (Form 16A) to be shared within 7 days of deduction.
+
+Declaration: We declare that this invoice shows the actual price of the goods/services described
+and that all particulars are true and correct.
+
+For TechNova Solutions Private Limited
+
+Authorised Signatory
+Contact: Priya Nair | accounts@technovasolutions.in | +91-98201-45678`
   ], { type: 'text/plain' });
 
-  await apiUpload(dummyBlob, 'invoice_sample.txt');
+  await apiUpload(dummyBlob, 'technova_invoice_TNS-2026-00892.txt');
 });
 
 /* =========================================================
@@ -799,6 +853,81 @@ $('clearActivityBtn').addEventListener('click', () => {
     apiGetStats();
   };
   document.head.appendChild(script);
+})();
+
+/* =========================================================
+   THEME TOGGLE
+   ========================================================= */
+(function initTheme() {
+  const html    = document.documentElement;
+  const toggle  = $('themeToggle');
+  const STORAGE = 'ocrDashTheme';
+
+  // Apply saved or OS-preferred theme before paint
+  const saved = localStorage.getItem(STORAGE);
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const theme = saved || (prefersDark ? 'dark' : 'light');
+  if (theme === 'light') html.setAttribute('data-theme', 'light');
+
+  toggle.addEventListener('click', () => {
+    const isLight = html.getAttribute('data-theme') === 'light';
+    if (isLight) {
+      html.removeAttribute('data-theme');          // back to dark (default :root)
+      localStorage.setItem(STORAGE, 'dark');
+    } else {
+      html.setAttribute('data-theme', 'light');
+      localStorage.setItem(STORAGE, 'light');
+    }
+    // Re-render charts with updated theme colors
+    setTimeout(() => {
+      if (typeof Chart !== 'undefined') {
+        renderChunkChart();
+        renderTypeChart();
+      }
+    }, 350); // Wait for CSS transitions to complete
+  });
+})();
+
+/* =========================================================
+   SERVER HEALTH POLLING
+   ========================================================= */
+(function initHealthCheck() {
+  const statusEl  = $('systemStatus');
+  const dotEl     = $('statusDot');
+  const textEl    = $('statusText');
+  let wasOffline  = false;
+
+  async function checkHealth() {
+    try {
+      const res = await fetch('/api/stats', { method: 'GET', signal: AbortSignal.timeout(3000) });
+      if (!res.ok) throw new Error('Non-OK response');
+
+      // Server is UP
+      if (wasOffline) {
+        showToast('Server back online ✓', 'success');
+        addActivity('Server reconnected — pipeline ready.', 'green');
+        wasOffline = false;
+      }
+      statusEl.classList.remove('offline');
+      dotEl.classList.add('pulse');
+      textEl.textContent = 'System Online';
+
+    } catch (_) {
+      // Server is DOWN
+      if (!wasOffline) {
+        showToast('Server offline — run python server.py', 'error', 5000);
+        addActivity('Server connection lost. Start the server to continue.', 'orange');
+        wasOffline = true;
+      }
+      statusEl.classList.add('offline');
+      dotEl.classList.remove('pulse');
+      textEl.textContent = 'System Offline';
+    }
+  }
+
+  // First check immediately, then every 5 seconds
+  checkHealth();
+  setInterval(checkHealth, 5000);
 })();
 
 /* =========================================================
