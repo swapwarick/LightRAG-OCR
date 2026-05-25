@@ -1,0 +1,16 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Local vector database
+local_vector_db/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Flask session / logs
+*.log
+instance/
+.pytest_cache/

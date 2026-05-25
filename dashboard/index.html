@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OCR Pipeline Dashboard</title>
+  <meta name="description" content="Visual dashboard for the Document OCR RAG pipeline — upload, extract, chunk, embed, and search documents intelligently." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- Animated background -->
+  <div class="bg-grid"></div>
+  <div class="bg-glow glow-1"></div>
+  <div class="bg-glow glow-2"></div>
+  <div class="bg-glow glow-3"></div>
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M9 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9l-6-6z"/>
+          <polyline points="9 3 9 9 15 9"/>
+          <line x1="7" y1="13" x2="17" y2="13"/>
+          <line x1="7" y1="17" x2="17" y2="17"/>
+        </svg>
+      </div>
+      <div class="logo-text">
+        <span class="logo-name">OCR<span class="logo-accent">Pipeline</span></span>
+        <span class="logo-sub">RAG Dashboard</span>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <a href="#" class="nav-item active" data-page="upload" id="nav-upload">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>
+        <span>Upload & Extract</span>
+        <div class="nav-indicator"></div>
+      </a>
+      <a href="#" class="nav-item" data-page="pipeline" id="nav-pipeline">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M4.93 4.93a10 10 0 0 0 0 14.14"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="M4.22 4.22l1.42 1.42"/><path d="M18.36 18.36l1.42 1.42"/></svg>
+        <span>Pipeline View</span>
+        <div class="nav-indicator"></div>
+      </a>
+      <a href="#" class="nav-item" data-page="documents" id="nav-documents">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        <span>Documents</span>
+        <div class="badge" id="doc-count-badge">0</div>
+        <div class="nav-indicator"></div>
+      </a>
+      <a href="#" class="nav-item" data-page="search" id="nav-search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <span>Semantic Search</span>
+        <div class="nav-indicator"></div>
+      </a>
+      <a href="#" class="nav-item" data-page="analytics" id="nav-analytics">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        <span>Analytics</span>
+        <div class="nav-indicator"></div>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="system-status">
+        <div class="status-dot pulse"></div>
+        <span>System Online</span>
+      </div>
+      <div class="version-tag">v1.0.0</div>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <!-- Top Bar -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="menu-toggle" id="menuToggle" aria-label="Toggle sidebar">
+          <span></span><span></span><span></span>
+        </button>
+        <div class="breadcrumb" id="breadcrumb">
+          <span>Dashboard</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+          <span id="breadcrumb-page">Upload & Extract</span>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <div class="stats-pill">
+          <div class="stat-item">
+            <span class="stat-label">Docs</span>
+            <span class="stat-val" id="total-docs">0</span>
+          </div>
+          <div class="divider-v"></div>
+          <div class="stat-item">
+            <span class="stat-label">Chunks</span>
+            <span class="stat-val" id="total-chunks">0</span>
+          </div>
+          <div class="divider-v"></div>
+          <div class="stat-item">
+            <span class="stat-label">Queries</span>
+            <span class="stat-val" id="total-queries">0</span>
+          </div>
+        </div>
+        <div class="avatar">HK</div>
+      </div>
+    </header>
+
+    <!-- Pages -->
+    <div class="page-container">
+
+      <!-- ========== PAGE: UPLOAD ========== -->
+      <section class="page active" id="page-upload">
+        <div class="page-header">
+          <h1 class="page-title">Upload & Extract</h1>
+          <p class="page-subtitle">Drop an image or PDF to run OCR and index it into the vector database.</p>
+        </div>
+
+        <div class="upload-layout">
+          <!-- Drop Zone -->
+          <div class="drop-zone" id="dropZone">
+            <div class="drop-zone-inner">
+              <div class="drop-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>
+              </div>
+              <p class="drop-title">Drop your document here</p>
+              <p class="drop-sub">PNG, JPG, TIFF, PDF — any scanned document</p>
+              <label class="btn-primary" for="fileInput" id="browseBtn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                Browse Files
+              </label>
+              <input type="file" id="fileInput" accept="image/*,.pdf" style="display:none" />
+            </div>
+            <div class="drop-zone-drag-overlay" id="dragOverlay">
+              <div class="drag-ring"></div>
+              <p>Release to upload</p>
+            </div>
+          </div>
+
+          <!-- Config Panel -->
+          <div class="config-panel">
+            <h3 class="config-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+              OCR Configuration
+            </h3>
+            <div class="config-group">
+              <label class="config-label">Language</label>
+              <div class="lang-chips" id="langChips">
+                <button class="chip active" data-lang="en">English</button>
+                <button class="chip" data-lang="hi">Hindi</button>
+                <button class="chip" data-lang="fr">French</button>
+                <button class="chip" data-lang="de">German</button>
+                <button class="chip" data-lang="es">Spanish</button>
+                <button class="chip" data-lang="zh">Chinese</button>
+              </div>
+            </div>
+            <div class="config-group">
+              <label class="config-label">Chunk Size</label>
+              <div class="slider-wrap">
+                <input type="range" id="chunkSize" min="100" max="1000" value="500" step="50" class="slider" />
+                <span class="slider-val" id="chunkSizeVal">500</span>
+              </div>
+            </div>
+            <div class="config-group">
+              <label class="config-label">Chunk Overlap</label>
+              <div class="slider-wrap">
+                <input type="range" id="chunkOverlap" min="0" max="300" value="100" step="25" class="slider" />
+                <span class="slider-val" id="chunkOverlapVal">100</span>
+              </div>
+            </div>
+            <div class="config-group">
+              <label class="config-label">GPU Acceleration</label>
+              <label class="toggle-wrap">
+                <input type="checkbox" id="gpuToggle" checked />
+                <span class="toggle"></span>
+                <span class="toggle-label">Use CUDA if available</span>
+              </label>
+            </div>
+            <div class="config-group">
+              <label class="config-label">Embedding Model</label>
+              <select class="select-input" id="embeddingModel">
+                <option value="all-MiniLM-L6-v2">all-MiniLM-L6-v2 (Fast)</option>
+                <option value="all-mpnet-base-v2">all-mpnet-base-v2 (Accurate)</option>
+                <option value="paraphrase-multilingual">paraphrase-multilingual (Multi-lang)</option>
+              </select>
+            </div>
+
+            <!-- Demo button -->
+            <button class="btn-secondary full-width" id="demoBtn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              Run Demo (Invoice Sample)
+            </button>
+          </div>
+        </div>
+
+        <!-- Preview panel (hidden until file chosen) -->
+        <div class="preview-panel" id="previewPanel" style="display:none">
+          <div class="preview-header">
+            <div class="preview-file-info">
+              <div class="file-icon-wrap">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              </div>
+              <div>
+                <p class="file-name" id="previewFileName">document.png</p>
+                <p class="file-size" id="previewFileSize">2.4 MB</p>
+              </div>
+            </div>
+            <button class="btn-danger-sm" id="clearFileBtn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              Clear
+            </button>
+          </div>
+          <div class="preview-body">
+            <img id="previewImg" src="" alt="Document preview" class="doc-preview-img" />
+          </div>
+          <div class="preview-footer">
+            <button class="btn-primary" id="processBtn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+              Process Document
+            </button>
+          </div>
+        </div>
+
+        <!-- Processing overlay -->
+        <div class="processing-modal" id="processingModal" style="display:none">
+          <div class="processing-card">
+            <div class="processing-steps" id="processingSteps">
+              <div class="proc-step" id="step-ocr">
+                <div class="proc-step-icon">
+                  <div class="spin-ring"></div>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M7 7h.01M12 7h.01M7 12h.01M12 12h.01M7 17h.01M12 17h5"/></svg>
+                </div>
+                <div class="proc-step-info">
+                  <p class="proc-step-name">OCR Extraction</p>
+                  <p class="proc-step-desc" id="ocr-desc">Running EasyOCR…</p>
+                </div>
+                <div class="proc-step-status" id="status-ocr">
+                  <div class="spinner"></div>
+                </div>
+              </div>
+              <div class="proc-connector"></div>
+              <div class="proc-step" id="step-chunk">
+                <div class="proc-step-icon pending">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="9" height="9"/><rect x="13" y="2" width="9" height="9"/><rect x="2" y="13" width="9" height="9"/><rect x="13" y="13" width="9" height="9"/></svg>
+                </div>
+                <div class="proc-step-info">
+                  <p class="proc-step-name">Text Chunking</p>
+                  <p class="proc-step-desc" id="chunk-desc">Awaiting OCR…</p>
+                </div>
+                <div class="proc-step-status" id="status-chunk">
+                  <div class="wait-ring"></div>
+                </div>
+              </div>
+              <div class="proc-connector"></div>
+              <div class="proc-step" id="step-embed">
+                <div class="proc-step-icon pending">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+                </div>
+                <div class="proc-step-info">
+                  <p class="proc-step-name">Embedding & Indexing</p>
+                  <p class="proc-step-desc" id="embed-desc">Awaiting chunking…</p>
+                </div>
+                <div class="proc-step-status" id="status-embed">
+                  <div class="wait-ring"></div>
+                </div>
+              </div>
+            </div>
+            <div class="processing-log" id="processingLog">
+              <div class="log-line">[*] Starting OCR Pipeline...</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========== PAGE: PIPELINE ========== -->
+      <section class="page" id="page-pipeline">
+        <div class="page-header">
+          <h1 class="page-title">Pipeline View</h1>
+          <p class="page-subtitle">Real-time visualization of every stage in the OCR RAG pipeline.</p>
+        </div>
+
+        <div class="pipeline-diagram" id="pipelineDiagram">
+          <!-- Stage 1 -->
+          <div class="pipeline-stage" data-stage="input">
+            <div class="stage-card">
+              <div class="stage-num">01</div>
+              <div class="stage-icon-wrap">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 12h8M12 8v8"/></svg>
+              </div>
+              <h3 class="stage-title">Document Input</h3>
+              <p class="stage-desc">PNG · JPG · TIFF · PDF</p>
+              <div class="stage-stat" id="pstat-input">— files uploaded</div>
+            </div>
+            <div class="pipeline-arrow">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </div>
+          </div>
+
+          <!-- Stage 2 -->
+          <div class="pipeline-stage" data-stage="ocr">
+            <div class="stage-card">
+              <div class="stage-num">02</div>
+              <div class="stage-icon-wrap">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M7 7h.01M12 7h.01M7 12h.01M12 12h.01M7 17h.01M12 17h5"/></svg>
+              </div>
+              <h3 class="stage-title">OCR Extraction</h3>
+              <p class="stage-desc">EasyOCR · GPU/CPU · Multi-lang</p>
+              <div class="stage-stat" id="pstat-ocr">— characters extracted</div>
+            </div>
+            <div class="pipeline-arrow">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </div>
+          </div>
+
+          <!-- Stage 3 -->
+          <div class="pipeline-stage" data-stage="chunk">
+            <div class="stage-card">
+              <div class="stage-num">03</div>
+              <div class="stage-icon-wrap">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="9" height="9"/><rect x="13" y="2" width="9" height="9"/><rect x="2" y="13" width="9" height="9"/><rect x="13" y="13" width="9" height="9"/></svg>
+              </div>
+              <h3 class="stage-title">Text Chunking</h3>
+              <p class="stage-desc">Word-based · Sliding window</p>
+              <div class="stage-stat" id="pstat-chunk">— chunks created</div>
+            </div>
+            <div class="pipeline-arrow">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </div>
+          </div>
+
+          <!-- Stage 4 -->
+          <div class="pipeline-stage" data-stage="embed">
+            <div class="stage-card">
+              <div class="stage-num">04</div>
+              <div class="stage-icon-wrap">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+              </div>
+              <h3 class="stage-title">Vectorization</h3>
+              <p class="stage-desc">all-MiniLM-L6-v2 · ChromaDB</p>
+              <div class="stage-stat" id="pstat-embed">— vectors stored</div>
+            </div>
+            <div class="pipeline-arrow">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </div>
+          </div>
+
+          <!-- Stage 5 -->
+          <div class="pipeline-stage" data-stage="search">
+            <div class="stage-card">
+              <div class="stage-num">05</div>
+              <div class="stage-icon-wrap">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              </div>
+              <h3 class="stage-title">Semantic Search</h3>
+              <p class="stage-desc">Cosine similarity · Top-K results</p>
+              <div class="stage-stat" id="pstat-search">— queries run</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pipeline log / activity feed -->
+        <div class="activity-section">
+          <div class="activity-header">
+            <h2 class="section-title">Activity Feed</h2>
+            <button class="btn-ghost" id="clearActivityBtn">Clear</button>
+          </div>
+          <div class="activity-feed" id="activityFeed">
+            <div class="activity-empty">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>
+              <p>No activity yet — process a document to begin.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========== PAGE: DOCUMENTS ========== -->
+      <section class="page" id="page-documents">
+        <div class="page-header">
+          <h1 class="page-title">Documents</h1>
+          <p class="page-subtitle">All indexed documents in the vector database.</p>
+        </div>
+
+        <div class="doc-toolbar">
+          <div class="search-input-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" placeholder="Filter documents…" id="docFilter" class="search-input" />
+          </div>
+          <div class="doc-sort">
+            <select class="select-input-sm" id="docSort">
+              <option value="newest">Newest First</option>
+              <option value="oldest">Oldest First</option>
+              <option value="name">Name A–Z</option>
+              <option value="chunks">Most Chunks</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="doc-grid" id="docGrid">
+          <div class="doc-empty" id="docEmpty">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/></svg>
+            <p>No documents indexed yet</p>
+            <span>Upload and process a document to see it here.</span>
+          </div>
+        </div>
+
+        <!-- Chunk explorer modal -->
+        <div class="modal-overlay" id="chunkModal" style="display:none">
+          <div class="modal-card">
+            <div class="modal-header">
+              <h3 id="chunkModalTitle">Document Chunks</h3>
+              <button class="modal-close" id="chunkModalClose">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
+            </div>
+            <div class="modal-body" id="chunkModalBody"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========== PAGE: SEARCH ========== -->
+      <section class="page" id="page-search">
+        <div class="page-header">
+          <h1 class="page-title">Semantic Search</h1>
+          <p class="page-subtitle">Ask a natural-language question and retrieve the most relevant chunks.</p>
+        </div>
+
+        <div class="search-layout">
+          <div class="search-box-wrap">
+            <div class="search-box">
+              <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input type="text" id="semanticQuery" class="search-query-input" placeholder="Ask a question about your documents…" autocomplete="off" />
+              <button class="search-send-btn" id="searchBtn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              </button>
+            </div>
+            <div class="search-options">
+              <label class="config-label">Top K Results</label>
+              <div class="k-selector" id="kSelector">
+                <button class="k-btn active" data-k="3">3</button>
+                <button class="k-btn" data-k="5">5</button>
+                <button class="k-btn" data-k="10">10</button>
+              </div>
+            </div>
+            <div class="suggested-queries">
+              <p class="suggest-label">Suggested queries:</p>
+              <div class="suggest-chips" id="suggestChips">
+                <button class="suggest-chip" data-q="How much do I owe in total?">How much do I owe in total?</button>
+                <button class="suggest-chip" data-q="Who is the invoice billed to?">Who is the invoice billed to?</button>
+                <button class="suggest-chip" data-q="What is the support email address?">What is the support email?</button>
+                <button class="suggest-chip" data-q="What items were ordered?">What items were ordered?</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="search-results" id="searchResults">
+            <div class="results-empty" id="resultsEmpty">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><path d="M11 8v4"/><path d="M11 16h.01"/></svg>
+              <p>Search results will appear here</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========== PAGE: ANALYTICS ========== -->
+      <section class="page" id="page-analytics">
+        <div class="page-header">
+          <h1 class="page-title">Analytics</h1>
+          <p class="page-subtitle">Insights into your OCR pipeline performance.</p>
+        </div>
+
+        <div class="analytics-grid">
+          <!-- KPI Cards -->
+          <div class="kpi-card">
+            <div class="kpi-icon blue">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            </div>
+            <div class="kpi-body">
+              <p class="kpi-label">Documents Indexed</p>
+              <p class="kpi-value" id="kpi-docs">0</p>
+            </div>
+            <div class="kpi-trend positive" id="kpi-docs-trend">—</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-icon purple">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="9" height="9"/><rect x="13" y="2" width="9" height="9"/><rect x="2" y="13" width="9" height="9"/><rect x="13" y="13" width="9" height="9"/></svg>
+            </div>
+            <div class="kpi-body">
+              <p class="kpi-label">Total Chunks</p>
+              <p class="kpi-value" id="kpi-chunks">0</p>
+            </div>
+            <div class="kpi-trend positive" id="kpi-chunks-trend">—</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-icon green">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            </div>
+            <div class="kpi-body">
+              <p class="kpi-label">Queries Run</p>
+              <p class="kpi-value" id="kpi-queries">0</p>
+            </div>
+            <div class="kpi-trend positive" id="kpi-queries-trend">—</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-icon orange">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            </div>
+            <div class="kpi-body">
+              <p class="kpi-label">Avg. Similarity Score</p>
+              <p class="kpi-value" id="kpi-similarity">—</p>
+            </div>
+            <div class="kpi-trend" id="kpi-sim-trend">—</div>
+          </div>
+
+          <!-- Chunk distribution chart -->
+          <div class="chart-card wide">
+            <h3 class="chart-title">Chunk Size Distribution</h3>
+            <canvas id="chunkChart" height="160"></canvas>
+            <div class="chart-empty" id="chunkChartEmpty">
+              <p>Process a document to see chunk distribution.</p>
+            </div>
+          </div>
+
+          <!-- Type distribution -->
+          <div class="chart-card">
+            <h3 class="chart-title">Document Types</h3>
+            <div class="donut-wrap">
+              <canvas id="typeChart" height="180"></canvas>
+              <div class="donut-center" id="donutCenter">
+                <p class="donut-val" id="donutVal">0</p>
+                <p class="donut-sub">Total</p>
+              </div>
+            </div>
+            <div class="legend" id="typeLegend"></div>
+          </div>
+
+          <!-- Search history -->
+          <div class="chart-card">
+            <h3 class="chart-title">Recent Queries</h3>
+            <div class="query-history" id="queryHistory">
+              <div class="query-history-empty">No queries yet.</div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- Toast notifications -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
