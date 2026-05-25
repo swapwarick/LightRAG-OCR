@@ -769,6 +769,7 @@ body {
   border-radius: var(--radius-lg); width: 680px; max-width: 96vw;
   max-height: 80vh; display: flex; flex-direction: column;
   box-shadow: var(--shadow);
+  overflow: hidden; /* Clips content to rounded borders and prevents expansion */
 }
 .modal-header {
   display: flex; align-items: center; justify-content: space-between;
@@ -781,7 +782,15 @@ body {
 }
 .modal-close:hover { color: var(--text-1); }
 .modal-close svg { width: 18px; height: 18px; }
-.modal-body { padding: 20px 24px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
+.modal-body {
+  padding: 20px 24px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1 1 0%;     /* Grows and shrinks perfectly within the card container */
+  min-height: 0;    /* Tells browser this container can shrink to trigger scrollbar */
+}
 
 .chunk-item {
   background: var(--bg-card2); border: 1px solid var(--border);
