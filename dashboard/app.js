@@ -292,8 +292,14 @@ async function apiUpload(file, customName = null) {
     });
 
     if (!res.ok) {
-      const errData = await res.json();
-      throw new Error(errData.error || 'Pipeline upload failed');
+      let errMsg = 'Pipeline upload failed';
+      try {
+        const errData = await res.json();
+        errMsg = errData.error || errMsg;
+      } catch (e) {
+        errMsg = `Server error (${res.status}): Please check the backend console.`;
+      }
+      throw new Error(errMsg);
     }
 
     const data = await res.json();

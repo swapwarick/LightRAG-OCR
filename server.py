@@ -138,30 +138,80 @@ def upload_document():
     temp_path = os.path.join(temp_dir, file.filename)
     file.save(temp_path)
 
-    log_queue.broadcast({"status": "ocr_running", "message": f"[*] Running OCR on: {file.filename}..."})
+    is_pdf = file.filename.lower().endswith('.pdf')
+    if is_pdf:
+        doc_type = 'pdf'
+
+    log_queue.broadcast({"status": "ocr_running", "message": f"[*] Processing document: {file.filename}..."})
     
     try:
-        # OCR Extraction
         start_time = time.time()
-        results = reader.readtext(temp_path)
-        
-        # Sort results: top-to-bottom, left-to-right
-        results.sort(key=lambda x: (x[0][0][1], x[0][0][0]))
-        
-        full_text_list = [text for (_, text, _) in results]
-        extracted_text = "\n".join(full_text_list)
-        ocr_time = time.time() - start_time
-        
-        log_queue.broadcast({
-            "status": "ocr_complete", 
-            "message": f"[+] OCR complete — {len(extracted_text)} characters extracted in {ocr_time:.2f}s."
-        })
-        
+        if is_pdf:
+            import fitz
+            doc = fitz.open(temp_path)
+            digital_text_parts = []
+            
+            for i, page in enumerate(doc):
+                text = page.get_text()
+                if text.strip():
+                    digital_text_parts.append(text)
+            
+            extracted_text = "\n".join(digital_text_parts).strip()
+            
+            # If digital text exists and has substantial content, use it directly!
+            if len(extracted_text) > 100:
+                ocr_time = time.time() - start_time
+                log_queue.broadcast({
+                    "status": "ocr_complete", 
+                    "message": f"[+] PDF digital text extraction complete — {len(extracted_text)} characters extracted in {ocr_time:.2f}s (No OCR required)."
+                })
+            else:
+                log_queue.broadcast({"status": "ocr_log", "message": "[*] Digital text is empty or too short. Falling back to EasyOCR page rendering..."})
+                ocr_text_parts = []
+                
+                for i, page in enumerate(doc):
+                    log_queue.broadcast({"status": "ocr_running", "message": f"[*] Rendering page {i+1} of {len(doc)}..."})
+                    zoom = 2.0
+                    mat = fitz.Matrix(zoom, zoom)
+                    pix = page.get_pixmap(matrix=mat)
+                    
+                    log_queue.broadcast({"status": "ocr_running", "message": f"[*] Running EasyOCR on page {i+1} of {len(doc)}..."})
+                    png_data = pix.tobytes("png")
+                    
+                    page_results = reader.readtext(png_data)
+                    page_results.sort(key=lambda x: (x[0][0][1], x[0][0][0]))
+                    
+                    page_text = "\n".join([text for (_, text, _) in page_results])
+                    if page_text.strip():
+                        ocr_text_parts.append(page_text)
+                
+                extracted_text = "\n".join(ocr_text_parts).strip()
+                ocr_time = time.time() - start_time
+                log_queue.broadcast({
+                    "status": "ocr_complete", 
+                    "message": f"[+] PDF OCR complete — {len(extracted_text)} characters extracted in {ocr_time:.2f}s."
+                })
+        else:
+            # Regular Image/Scan EasyOCR
+            results = reader.readtext(temp_path)
+            
+            # Sort results: top-to-bottom, left-to-right
+            results.sort(key=lambda x: (x[0][0][1], x[0][0][0]))
+            
+            full_text_list = [text for (_, text, _) in results]
+            extracted_text = "\n".join(full_text_list)
+            ocr_time = time.time() - start_time
+            
+            log_queue.broadcast({
+                "status": "ocr_complete", 
+                "message": f"[+] OCR complete — {len(extracted_text)} characters extracted in {ocr_time:.2f}s."
+            })
+            
     except Exception as e:
-        log_queue.broadcast({"status": "error", "message": f"[!] OCR Error: {str(e)}"})
+        log_queue.broadcast({"status": "error", "message": f"[!] Processing Error: {str(e)}"})
         if os.path.exists(temp_path):
             os.remove(temp_path)
-        return jsonify({"error": f"OCR extraction failed: {str(e)}"}), 500
+        return jsonify({"error": f"Document processing failed: {str(e)}"}), 500
 
     # Clean up temp file
     if os.path.exists(temp_path):
@@ -177,7 +227,7 @@ def upload_document():
 
     if not chunks:
         log_queue.broadcast({"status": "error", "message": "[!] No text extracted to index."})
-        return jsonify({"error": "No text extracted from image to index"}), 400
+        return jsonify({"error": "No text extracted from document to index"}), 400
 
     # ChromaDB indexing
     log_queue.broadcast({"status": "embed_start", "message": f"[*] Initializing ChromaDB using model: {model_name}..."})

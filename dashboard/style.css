@@ -734,6 +734,7 @@ body {
 .doc-type-badge.invoice { background: rgba(16,185,129,.15); color: var(--accent-3); }
 .doc-type-badge.demo { background: rgba(245,158,11,.15); color: var(--accent-4); }
 .doc-type-badge.image { background: rgba(139,92,246,.15); color: var(--accent-2); }
+.doc-type-badge.pdf { background: rgba(239,68,68,.15); color: var(--accent-red); }
 
 .doc-delete-btn {
   background: none; border: none; color: var(--text-3); cursor: pointer;
