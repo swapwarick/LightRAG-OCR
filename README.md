@@ -2,7 +2,12 @@
 
 A local-first, high-performance RAG (Retrieval-Augmented Generation) pipeline that fuses scanned document OCR with semantic vector indexing. Comes with a full-featured web dashboard for drag-and-drop ingestion, real-time pipeline log streaming, vector collection management, and semantic similarity search.
 
+> [!NOTE]
+> 💖 **Special Shout Out to EasyOCR!**
+> This project is made possible thanks to the fantastic work of [EasyOCR](https://github.com/JaidedAI/EasyOCR) by JaidedAI. Its superb, lightweight, and out-of-the-box multi-language support (with seamless GPU/CUDA acceleration) forms the core text extraction engine of this entire pipeline!
+
 ---
+
 
 ## ⚡ Features
 
@@ -218,13 +223,18 @@ LightRAG-OCR/
 
 ---
 
-## 🙌 Credits
+## 🙌 Credits & Shout Outs
 
-Built on top of:
-- [EasyOCR](https://github.com/JaidedAI/EasyOCR) by JaidedAI — multi-language OCR with GPU support
-- [ChromaDB](https://github.com/chroma-core/chroma) — local vector database
-- [sentence-transformers](https://www.sbert.net/) — semantic embedding models
-- [Flask](https://flask.palletsprojects.com/) — lightweight Python web framework
+A huge shout out to the open-source libraries that make this project possible:
+
+- **[EasyOCR](https://github.com/JaidedAI/EasyOCR) by JaidedAI** 🌟
+  - *The absolute backbone of our document ingestion pipeline.* We love EasyOCR for its exceptional accuracy, out-of-the-box support for 80+ languages, and painless GPU acceleration setup. A stellar OCR library that makes high-quality document intelligence accessible to everyone!
+- **[ChromaDB](https://github.com/chroma-core/chroma)**
+  - A local-first, developer-friendly vector database that powers our semantic retrieval pipeline with fast SQLite persistence.
+- **[sentence-transformers](https://www.sbert.net/)**
+  - Provides advanced, state-of-the-art embedding models (using `all-MiniLM-L6-v2`) for generating high-quality 384-dimensional dense vectors.
+- **[Flask](https://flask.palletsprojects.com/)**
+  - The dependable, lightweight Python WSGI web application framework that acts as our backend.
 
 ---
 
